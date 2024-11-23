@@ -82,7 +82,7 @@ struct ContentView: View {
                 if destination == Destination.List {
                     CarsListView(modelContext: modelContext)
                 } else if destination == Destination.Chart {
-                    ChartView()
+                    ChartView(modelContext: modelContext)
                 }
             }
         }

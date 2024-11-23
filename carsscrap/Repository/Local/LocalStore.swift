@@ -25,9 +25,33 @@ actor LocalStore {
     
     func fetch() async -> [CarModel] {
         do {
-            return try modelContext.fetch(FetchDescriptor<CarModel>())
+            var descriptor = FetchDescriptor<CarModel>()
+            descriptor.sortBy = [SortDescriptor(\.createdAt)]
+            return try modelContext.fetch(descriptor)
         } catch {
             print("Failed to fetch: \(error)")
+            return []
+        }
+    }
+    
+    func fetchYears() async -> [Int] {
+        do {
+            var descriptor = FetchDescriptor<CarModel>()
+            descriptor.propertiesToFetch = [\.year]
+            return Set(try modelContext.fetch(descriptor).map { $0.year }).sorted()
+        } catch {
+            print("Failed to fetch years: \(error)")
+            return []
+        }
+    }
+    
+    func fetchEnginePowers() async -> [Int] {
+        do {
+            var descriptor = FetchDescriptor<CarModel>()
+            descriptor.propertiesToFetch = [\.enginePower]
+            return Set(try modelContext.fetch(descriptor).map { $0.enginePower }).sorted()
+        } catch {
+            print("Failed to fetch engine power: \(error)")
             return []
         }
     }
