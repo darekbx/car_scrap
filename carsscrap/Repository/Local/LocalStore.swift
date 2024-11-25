@@ -34,6 +34,17 @@ actor LocalStore {
         }
     }
     
+    func fetchCarsByYears() async -> [Int: [CarModel]] {
+        do {
+            var descriptor = FetchDescriptor<CarModel>()
+            descriptor.sortBy = [SortDescriptor(\.createdAt)]
+            return Dictionary(grouping: try modelContext.fetch(descriptor), by: { $0.year })
+        } catch {
+            print("Failed to fetch: \(error)")
+            return [:]
+        }
+    }
+    
     func fetchYears() async -> [Int] {
         do {
             var descriptor = FetchDescriptor<CarModel>()
