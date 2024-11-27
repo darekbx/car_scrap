@@ -11,7 +11,7 @@ import SwiftData
 struct ContentView: View {
     
     enum Destination {
-        case List, Chart
+        case List, Chart, Statistics
     }
     
     @Environment(\.modelContext) private var modelContext
@@ -44,11 +44,11 @@ struct ContentView: View {
         .navigationTitle("Cars Scrap")
     }
     
-    fileprivate func MenuContainer() -> List<Never, TupleView<(some View, some View)>> {
+    fileprivate func MenuContainer() -> some View {
         return List {
             HStack {
                 Image(systemName: "list.bullet")
-                    .foregroundColor(.gray)
+                    .foregroundColor(destination == Destination.List ? .orange : .gray)
                     .frame(width: 24)
                 Text("List")
                     .font(.headline)
@@ -58,13 +58,23 @@ struct ContentView: View {
             }
             HStack {
                 Image(systemName: "chart.bar")
-                    .foregroundColor(.gray)
+                    .foregroundColor(destination == Destination.Chart ? .orange : .gray)
                     .frame(width: 24)
                 Text("Chart")
                     .font(.headline)
             }
             .onTapGesture {
                 destination = Destination.Chart
+            }
+            HStack {
+                Image(systemName: "chart.pie")
+                    .foregroundColor(destination == Destination.Statistics ? .orange : .gray)
+                    .frame(width: 24)
+                Text("Statistics")
+                    .font(.headline)
+            }
+            .onTapGesture {
+                destination = Destination.Statistics
             }
         }
     }
@@ -83,6 +93,7 @@ struct ContentView: View {
                     CarsListView(modelContext: modelContext)
                 } else if destination == Destination.Chart {
                     ChartView(modelContext: modelContext)
+                } else if destination == Destination.Statistics {
                 }
             }
         }
