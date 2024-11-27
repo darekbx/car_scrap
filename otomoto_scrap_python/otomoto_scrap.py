@@ -11,10 +11,11 @@ from datetime import datetime
 
 from local_storage import LocalStorage
 from remote_storage import RemoteStorage
+from config import requestLocation
 
 class OtomotoScrap:
 
-    __request = ""
+    __request = requestLocation
     __url = 'https://www.otomoto.pl/graphql'
     __headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:132.0) Gecko/20100101 Firefox/132.0",

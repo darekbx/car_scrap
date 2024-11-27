@@ -1,10 +1,11 @@
 import sqlite3
+from config import dbFileLocation
 
 class LocalStorage:
     
     __connection = None
     __transactionCursor = None
-    __dbFile = ""
+    __dbFile = dbFileLocation
 
     def __init__(self): 
         self.__connectDb()

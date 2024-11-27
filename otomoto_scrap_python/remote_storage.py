@@ -5,6 +5,7 @@ from datetime import datetime
 
 from firebase_admin import credentials
 from local_storage import LocalStorage
+from config import certLocation
 
 class RemoteStorage:
 
@@ -15,7 +16,7 @@ class RemoteStorage:
     __existingIds = []
 
     def __init__(self): 
-        cred = credentials.Certificate("")
+        cred = credentials.Certificate(certLocation)
         firebase_admin.initialize_app(cred)
         self.__db = firestore.client()
     
