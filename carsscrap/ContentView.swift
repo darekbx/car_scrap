@@ -94,6 +94,7 @@ struct ContentView: View {
                 } else if destination == Destination.Chart {
                     ChartView(modelContext: modelContext)
                 } else if destination == Destination.Statistics {
+                    StatisticsView()
                 }
             }
         }

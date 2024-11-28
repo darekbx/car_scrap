@@ -32,11 +32,11 @@ class RemoteStorage:
         # not used in firestore
         pass
 
-    def addRecord(self, createdAt, externalId, url, price, currency, fuelType, gearbox, enginePower, year, countryOrigin, mileage):
+    def addRecord(self, externalId, createdAt, url, price, currency, fuelType, gearbox, enginePower, year, countryOrigin, mileage):
         # avoid duplicates
         if self.__checkIfIdExists(externalId):
             return
-        print(f"NEW externalId: {externalId}")
+        print(f"Add new item ({externalId})")
         self.__db.collection(self.__carsCollection).add({
             "createdAt": datetime.strptime(createdAt, "%Y-%m-%d %H:%M:%S"),
             "externalId": externalId, 
@@ -58,7 +58,7 @@ class RemoteStorage:
         print(len(existingIds))
 
     def fetchLastCreatedAt(self):
-        query = db.collection(self.__carsCollection).order_by("createdAt", direction=firestore.Query.DESCENDING).limit(1)
+        query = self.__db.collection(self.__carsCollection).order_by("createdAt", direction=firestore.Query.DESCENDING).limit(1)
         docs = query.stream()
         for doc in docs:
             return doc.to_dict()["createdAt"]
@@ -81,16 +81,25 @@ class RemoteStorage:
                 "countryOrigin": row[10], 
                 "mileage": row[11]
             })
+            externalIds.append(row[1])
         self.__appendExternalId(externalIds)
 
+    def countItems(self):
+        result = self.__db.collection(self.__carsCollection).count().get()
+        metadata = self.__db.collection(self.__metadataCollection).document("ids").get() 
+        ids = metadata.to_dict().get("ids", [])
+        print(f"Rows count: {result[0][0].value}\nIds count: {len(ids)}")
+
     def __checkIfIdExists(self, externalId):
-        metadata = self.__db.collection(self.__metadataCollection).document("ids")
-        result = metadata.where("ids", "array-contains", externalId).get()
-        return result == True
+        metadata = self.__db.collection(self.__metadataCollection).document("ids").get()
+        if metadata.exists:
+            ids = metadata.to_dict().get("ids", [])
+            return externalId in ids
+        return False
 
     def __appendExternalId(self, externalIds):
         metadata = self.__db.collection(self.__metadataCollection).document("ids")
-        metadata_ref.update({"ids": firestore.ArrayUnion(externalIds)})
+        metadata.update({"ids": firestore.ArrayUnion(externalIds)})
 
 if __name__ == "__main__":
-    RemoteStorage().importFromLocal()
+    RemoteStorage().countItems()

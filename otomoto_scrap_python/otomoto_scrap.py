@@ -37,7 +37,7 @@ class OtomotoScrap:
         with open(self.__request, "r") as file:
             requestData = json.load(file)
 
-        self.__latestCreatedAt = datetime.strptime("2024-11-27 09:41:05", "%Y-%m-%d %H:%M:%S")#self.__storage.fetchLastCreatedAt()
+        self.__latestCreatedAt = self.__storage.fetchLastCreatedAt()
         page = 1
 
         while True:
@@ -60,7 +60,6 @@ class OtomotoScrap:
             page = page + 1
             if currentOffset + pageSize > totalCount:
                 break
-            break
 
         print("Done!")
             
@@ -85,7 +84,7 @@ class OtomotoScrap:
             mileage = self.__readParameter(parameters, "mileage")
 
             createdAtDateTime = datetime.strptime(createdAt, "%Y-%m-%d %H:%M:%S")
-            if createdAtDateTime > self.__latestCreatedAt:
+            if createdAtDateTime.timestamp() > self.__latestCreatedAt.timestamp():
                 self.__storage.addRecord(id, createdAt, url, price, currency, fuelType, gearBox, enginePower, year, countryOrigin, mileage)
 
     def __readParameter(self, parameters, key):
