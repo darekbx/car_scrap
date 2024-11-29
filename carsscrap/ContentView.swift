@@ -16,6 +16,7 @@ struct ContentView: View {
     
     @Environment(\.modelContext) private var modelContext
     
+    @StateObject private var firebaseProvider = FirebaseProvider()
     @State var destination: Destination = Destination.List
     @State var inProgres = false
     @State var progress = 0.0
@@ -84,7 +85,7 @@ struct ContentView: View {
             if inProgres {
                 VStack(alignment: .center) {
                     Text("Updating...")
-                    ProgressView(value: progress, total: 100)
+                    ProgressView()
                         .padding(.leading, 64)
                         .padding(.trailing, 64)
                 }
@@ -94,16 +95,9 @@ struct ContentView: View {
                 } else if destination == Destination.Chart {
                     ChartView(modelContext: modelContext)
                 } else if destination == Destination.Statistics {
-                    StatisticsView()
+                    StatisticsView(modelContext: modelContext)
                 }
             }
-        }
-    }
-    
-    private func deleteAll() {
-        Task {
-            let localStore = LocalStore(modelContainer: modelContext.container)
-            await localStore.deleteAll()
         }
     }
     
@@ -112,10 +106,14 @@ struct ContentView: View {
         Task {
             defer { inProgres = false }
             let localStore = LocalStore(modelContainer: modelContext.container)
-            await Updater(localStore: localStore)
+            /*
+             Now data is loaded from Firestore
+             await Updater(localStore: localStore)
                 .update { progress in
                     self.progress = progress
                 }
+             */
+            await localStore.fillDatabase()
         }
     }
 }

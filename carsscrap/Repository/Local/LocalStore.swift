@@ -11,15 +11,24 @@ import SwiftData
 @ModelActor
 actor LocalStore {
     
-    func deleteAll() async {
+    func fillDatabase() async {
         do {
+            // Delete all
             let items = try modelContext.fetch(FetchDescriptor<CarModel>())
             items.forEach { model in
                 modelContext.delete(model)
             }
             try modelContext.save()
+            
+            // Fetch from firebase
+            let remoteData = try await FirebaseProvider().fetch()
+            remoteData.forEach { model in
+                modelContext.insert(model)
+            }
+            try modelContext.save()
+            
         } catch {
-            print("Failed to delete: \(error)")
+            print("Failed to fill database: \(error)")
         }
     }
     
