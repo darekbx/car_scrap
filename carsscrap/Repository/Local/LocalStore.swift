@@ -22,8 +22,13 @@ actor LocalStore {
             
             // Fetch from firebase
             let remoteData = try await FirebaseProvider().fetch()
+            var externalIds: [String] = []
             remoteData.forEach { model in
+                if externalIds.contains(model.externalId) {
+                    return
+                }
                 modelContext.insert(model)
+                externalIds.append(model.externalId)
             }
             try modelContext.save()
             

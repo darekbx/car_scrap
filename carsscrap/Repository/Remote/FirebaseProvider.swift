@@ -50,7 +50,7 @@ class FirebaseProvider: ObservableObject {
         }
         
         do {
-            let result = try await Auth.auth().signIn(withEmail: email, password: password)
+            try await Auth.auth().signIn(withEmail: email, password: password)
             return true
         } catch {
             return false

@@ -12,7 +12,7 @@ import FirebaseFirestore
 @Model
 final class CarModel: Identifiable {
     @Attribute(.unique) var id: String = UUID().uuidString
-    @Attribute(.unique) var externalId: String
+    @Attribute var externalId: String
     @Attribute var createdAt: String
     @Attribute var url: String
     @Attribute var price: Int
