@@ -12,11 +12,14 @@ import Charts
 
 struct StatisticsView: View {
     
-    private let enginePowers = [145, 165, 192, 194, 250]
+    private let validEnginePowers = [145, 165, 192, 194, 250]
     
     @State private var yearAverages: [[String]] = []
     @State private var histogram: [AveragePriceToYear] = []
     @State private var enginePowerCount: [EnginePowerToYear] = []
+    
+    @State private var enginePowers: [Int] = []
+    @State private var selectedEnginePower = 0
     
     private let modelContext: ModelContext
     
@@ -25,8 +28,14 @@ struct StatisticsView: View {
     }
     
     var body: some View {
-        VStack {
-            Text("Average prices").padding(.bottom, 16)
+        VStack(alignment: .center) {
+            HStack {
+                Text("Average prices")
+                EnginePowerFilter(selectedEnginePower: $selectedEnginePower, enginePowers: enginePowers)
+                    .padding(.leading, 8)
+            }
+            .padding()
+            
             VStack {
                 if yearAverages.count == 2 && !histogram.isEmpty {
                     AveragePrice()
@@ -45,8 +54,9 @@ struct StatisticsView: View {
             }
             .padding(.trailing, 16)
             .padding(.leading, 16)
+            Spacer()
         }
-        .task {
+        .task(id: selectedEnginePower) {
             fetchData()
         }
     }
@@ -102,10 +112,7 @@ struct StatisticsView: View {
             }
         }
         .chartYAxis {
-            AxisMarks(values: .stride(by: 10000)) { value in
-                AxisGridLine()
-                AxisTick()
-            }
+            AxisMarks(values: .stride(by: 10000))
         }
         .frame(height: 300)
     }
@@ -142,30 +149,47 @@ struct StatisticsView: View {
             let carsByYears = (await localStore.fetchCarsByYears())
             let years = carsByYears.keys.sorted { $0 < $1 }
             
+            var averageYears: [String] = []
             var averages: [String] = []
+            
+            histogram.removeAll()
+            yearAverages.removeAll()
+            enginePowerCount.removeAll()
+            
+            enginePowers = await localStore.fetchEnginePowers().filter { validEnginePowers.contains($0) }
+            // 0 means All engine powers
+            enginePowers.insert(0, at: 0)
+            
             years.forEach { year in
                 let yearData = carsByYears[year] ?? []
-                let yearDataSorted = yearData.sorted { $0.price < $1.price }
-                // Remove lowest and highest price from average calculation
-                let normalizedYearData = yearDataSorted
-                    .dropFirst()
-                    .dropLast()
-                let total = normalizedYearData.reduce(0, { $0 + $1.price })
-                let averagePrice = total / yearData.count
-                averages.append(String(averagePrice))
+                let yearDataSorted = yearData
+                    .filter { selectedEnginePower == 0 || $0.enginePower == selectedEnginePower }
+                    .sorted { $0.price < $1.price }
                 
-                histogram.append(AveragePriceToYear(averagePrice, year))
-                
-                for (enginePower, items) in Dictionary(grouping: yearData, by: { $0.enginePower }) {
-                    let entry = EnginePowerToYear(enginePower: enginePower, count: items.count, year: year)
-                    // Limit only to valid engine powers
-                    if enginePowers.contains(entry.enginePower) {
-                        enginePowerCount.append(entry)
+                if !yearDataSorted.isEmpty {
+                    
+                    // Remove lowest and highest price from average calculation
+                    let normalizedYearData = yearDataSorted
+                        .dropFirst()
+                        .dropLast()
+                    let total = normalizedYearData.reduce(0, { $0 + $1.price })
+                    let averagePrice = total / yearDataSorted.count
+                    averages.append(String(averagePrice))
+                    averageYears.append(String(year))
+                    
+                    histogram.append(AveragePriceToYear(averagePrice, year))
+                    
+                    for (enginePower, items) in Dictionary(grouping: yearDataSorted, by: { $0.enginePower }) {
+                        let entry = EnginePowerToYear(enginePower: enginePower, count: items.count, year: year)
+                        // Limit only to valid engine powers
+                        if validEnginePowers.contains(entry.enginePower) {
+                            enginePowerCount.append(entry)
+                        }
                     }
                 }
             }
             
-            yearAverages.append(years.map { String($0) }) // Headers
+            yearAverages.append(averageYears) // Headers
             yearAverages.append(averages) // Averages
         }
     }
